@@ -129,6 +129,16 @@ Standard 19 %, mixed rates with a discount, Kleinunternehmer, reverse charge to 
 
 The presets reproduce the customary German invoice notes. Which treatment applies to a transaction, and whether an e-invoice is required at all (since 2025 every German business must be able to receive one; issuing becomes mandatory in stages until 2028, Kleinunternehmer are exempt from issuing), is a question for a tax adviser. The library validates form, not facts.
 
+## Releasing
+
+Bump `lib/en16931/version.rb`, move the changelog entries under the new version, commit, then tag and push:
+
+```
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+`.github/workflows/release.yml` runs the tests and both validators again and publishes through [Trusted Publishing](https://guides.rubygems.org/trusted-publishing/); no API key is stored anywhere.
+
 ## Licences
 
 MIT. Bundled: DejaVu Sans (Bitstream Vera licence, `fonts/LICENSE-DejaVu.txt`) and the sRGB profile from [Compact ICC Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles) (CC0).

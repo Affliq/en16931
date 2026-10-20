@@ -1,0 +1,46 @@
+name: Release
+
+# Publishes the gem to rubygems.org through Trusted Publishing (OIDC, no API
+# key anywhere): push a tag `vX.Y.Z` that matches lib/en16931/version.rb,
+# the full test suite and both validators run once more, then the gem goes
+# out. rubygems.org knows this workflow as the trusted publisher of en16931.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Cache the KoSIT validator
+        uses: actions/cache@v4
+        with:
+          path: tmp/kosit
+          key: kosit-1.6.3-2026-08-31
+      - name: Pull veraPDF
+        run: docker pull ghcr.io/verapdf/cli:latest
+      - name: The tag must match the gem version
+        run: |
+          version=$(ruby -r ./lib/en16931/version -e 'puts EN16931::VERSION')
+          [ "${GITHUB_REF_NAME}" = "v${version}" ] || { echo "tag ${GITHUB_REF_NAME} but version ${version}"; exit 1; }
+      - name: Tests (unit, KoSIT, veraPDF)
+        run: bundle exec rake test
+      - name: RuboCop
+        run: bundle exec rubocop
+      - name: Validation matrix
+        run: bundle exec rake validate
+      - name: Publish to rubygems.org
+        uses: rubygems/release-gem@v1
