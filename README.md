@@ -17,7 +17,7 @@ Every fixture in `test/fixtures/invoices.rb` passes both validators; see `rake v
 gem "en16931"
 ```
 
-Ruby 3.2 or newer. No system dependencies at run time. The validators need Java 11+ (KoSIT) and the `verapdf` command or Docker (veraPDF); they are for CI, not for production.
+Ruby 3.2 to 4.0 (CI runs every one). No system dependencies at run time. The validators need Java 11+ (KoSIT) and the `verapdf` command or Docker (veraPDF); they are for CI, not for production.
 
 ## Usage
 
