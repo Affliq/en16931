@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ["3.2", "3.3", "3.4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Cache the KoSIT validator
+        uses: actions/cache@v4
+        with:
+          path: tmp/kosit
+          key: kosit-1.6.3-2026-08-31
+      - name: Pull veraPDF
+        run: docker pull ghcr.io/verapdf/cli:latest
+      - name: Tests (unit, KoSIT, veraPDF)
+        run: bundle exec rake test
+      - name: RuboCop
+        run: bundle exec rubocop
+      - name: Validation matrix
+        run: bundle exec rake validate
