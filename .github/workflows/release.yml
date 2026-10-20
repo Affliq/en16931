@@ -42,5 +42,9 @@ jobs:
         run: bundle exec rubocop
       - name: Validation matrix
         run: bundle exec rake validate
+      - name: Show the OIDC claims rubygems.org will see (no token printed)
+        run: |
+          token=$(curl -sS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=rubygems.org" | ruby -rjson -e 'puts JSON.parse($stdin.read)["value"]')
+          echo "$token" | cut -d. -f2 | ruby -rbase64 -rjson -e 'c = JSON.parse(Base64.urlsafe_decode64($stdin.read.strip.ljust((($stdin.read.length + 3) / 4) * 4, "="))) rescue c = JSON.parse(Base64.urlsafe_decode64($stdin.read.strip + "==")); puts c.slice("iss", "aud", "repository", "repository_owner", "repository_owner_id", "job_workflow_ref", "environment", "ref").to_json'
       - name: Publish to rubygems.org
         uses: rubygems/release-gem@v1
