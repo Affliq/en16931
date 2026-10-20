@@ -90,4 +90,22 @@ module Fixtures
   end
 
   def self.each(&) = all.each(&)
+
+  # A full dress: logo, accent, texts, GiroCode. The PNG has an alpha channel
+  # on purpose, since transparency is the PDF/A trap a logo walks into.
+  BRANDING = EN16931::Branding.new(
+    logo: File.join(__dir__, "logo.png"), logo_position: :left, accent: "FF5A1F",
+    intro: "vielen Dank für den Auftrag. Für die vereinbarte Leistung berechne ich wie folgt:",
+    closing: "Vielen Dank für die gute Zusammenarbeit.\n\nLena Beispiel"
+  )
+
+  # Every PDF the validators see: each invoice plain, plus the branded
+  # renders. Yields name, invoice and the options for PDF.render.
+  def self.renders
+    base = all.transform_values { |invoice| [invoice, {}] }
+    base.merge(
+      branded: [all[:standard_19], { branding: BRANDING }],
+      branded_right_en: [all[:reverse_charge_eu], { branding: BRANDING.with(logo_position: :right, intro: nil, closing: "Thank you for working with me."), locale: :en }]
+    )
+  end
 end

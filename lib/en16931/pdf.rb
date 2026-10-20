@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require "prawn"
+require "stringio"
 require "prawn/table"
 require_relative "pdf/xmp"
+require_relative "pdf/giro_code"
 require_relative "pdf/a3"
 require_relative "pdf/renderer"
 
@@ -13,10 +15,11 @@ module EN16931
   module PDF
     module_function
 
+    # @param branding [Branding] logo, colour, typeface, texts, GiroCode; the plain layout by default
     # @return [String] PDF bytes
-    def render(invoice, profile: :xrechnung, locale: :de, created_at: Time.now, **renderer_options)
+    def render(invoice, profile: :xrechnung, locale: :de, created_at: Time.now, branding: Branding.new)
       xml = XML.cii(invoice, profile:)
-      doc = Renderer.new(invoice, locale:, **renderer_options).document
+      doc = Renderer.new(invoice, locale:, branding:).document
       A3.attach(doc, xml, profile:, title: Renderer.title(invoice, locale), author: invoice.seller.name, created_at:)
       doc.render
     end

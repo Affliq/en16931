@@ -15,10 +15,10 @@ task :examples do
   require "en16931"
   require_relative "test/fixtures/invoices"
   FileUtils.mkdir_p("examples")
-  Fixtures.each do |name, invoice|
-    File.write("examples/#{name}.xml", EN16931::XML.cii(invoice))
-    File.binwrite("examples/#{name}.pdf", EN16931::PDF.render(invoice, created_at: Time.utc(2026, 10, 20, 12)))
-    puts "examples/#{name}.{xml,pdf}"
+  Fixtures.each { |name, invoice| File.write("examples/#{name}.xml", EN16931::XML.cii(invoice)) }
+  Fixtures.renders.each do |name, (invoice, options)|
+    File.binwrite("examples/#{name}.pdf", EN16931::PDF.render(invoice, created_at: Time.utc(2026, 10, 20, 12), **options))
+    puts "examples/#{name}.pdf"
   end
 end
 
@@ -30,10 +30,10 @@ task :validate do
   kosit = EN16931::Validation::KoSIT.new.install!
   vera = EN16931::Validation::VeraPDF.new
   failed = false
-  puts "fixture                      KoSIT      veraPDF   "
-  Fixtures.each do |name, invoice|
+  puts "render                       KoSIT      veraPDF   "
+  Fixtures.renders.each do |name, (invoice, options)|
     xml_report = kosit.validate(EN16931::XML.cii(invoice))
-    pdf_report = vera.validate(EN16931::PDF.render(invoice))
+    pdf_report = vera.validate(EN16931::PDF.render(invoice, **options))
     puts format("%<name>-28s %<xml>-10s %<pdf>-10s", name: name, xml: xml_report.valid? ? "valid" : "INVALID", pdf: pdf_report.valid? ? "valid" : "INVALID")
     [xml_report, pdf_report].reject(&:valid?).each { |r| puts r.to_s.lines.map { |l| "    #{l}" }.join }
     failed ||= !(xml_report.valid? && pdf_report.valid?)

@@ -52,11 +52,46 @@ class PDFTest < Minitest::Test
   end
 
   def test_every_fixture_renders
-    Fixtures.each do |name, invoice|
-      pdf = EN16931::PDF.render(invoice)
+    Fixtures.renders.each do |name, (invoice, options)|
+      pdf = EN16931::PDF.render(invoice, **options)
       assert pdf.bytesize > 10_000, "#{name} rendered nothing"
       assert_equal 1, ::PDF::Reader.new(StringIO.new(pdf)).page_count, "#{name} should fit on one page"
     end
+  end
+
+  def test_branded_render_carries_logo_texts_and_giro_code
+    pdf = EN16931::PDF.render(@invoice, branding: Fixtures::BRANDING)
+    reader = ::PDF::Reader.new(StringIO.new(pdf))
+    images = reader.objects.values.select { |o| o.is_a?(::PDF::Reader::Stream) && o.hash[:Subtype] == :Image }
+    assert_equal 2, images.size, "logo image and its alpha mask"
+    assert images.any? { |i| i.hash[:SMask] }, "the PNG alpha channel becomes a soft mask"
+    assert(images.all? { |i| %i[DeviceRGB DeviceGray].include?(i.hash[:ColorSpace]) })
+    text = reader.pages.first.text
+    assert_includes text, "vielen Dank für den Auftrag"
+    assert_includes text, "Vielen Dank für die gute Zusammenarbeit."
+    assert_includes text, "GiroCode"
+    assert_includes text, "Lena Beispiel · Musterstraße 12 · 10115 Berlin"
+  end
+
+  def test_plain_render_has_giro_code_but_no_image
+    reader = ::PDF::Reader.new(StringIO.new(@pdf))
+    refute(reader.objects.values.any? { |o| o.is_a?(::PDF::Reader::Stream) && o.hash[:Subtype] == :Image })
+    assert_includes reader.pages.first.text, "GiroCode"
+  end
+
+  def test_giro_code_is_left_out_when_the_invoice_cannot_carry_one
+    usd = Fixtures.all[:third_country_usd]
+    refute_includes ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(usd))).pages.first.text, "Scan to pay"
+    off = EN16931::PDF.render(@invoice, branding: EN16931::Branding.new(giro_code: false))
+    refute_includes ::PDF::Reader.new(StringIO.new(off)).pages.first.text, "GiroCode"
+  end
+
+  def test_branded_render_with_own_font_embeds_it
+    branding = EN16931::Branding.new(font: { normal: EN16931.font_path("DejaVuSans-Bold.ttf") })
+    pdf = EN16931::PDF.render(@invoice, branding:)
+    reader = ::PDF::Reader.new(StringIO.new(pdf))
+    fonts = reader.objects.values.select { |o| o.is_a?(Hash) && o[:Type] == :Font }
+    assert fonts.all? { |f| f[:BaseFont].to_s.include?("DejaVuSans-Bold") }, fonts.map { |f| f[:BaseFont] }.inspect
   end
 
   def test_custom_prawn_document_can_be_attached

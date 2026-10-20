@@ -5,6 +5,7 @@ EN 16931 e-invoices for Ruby, in pure Ruby.
 - A small invoice model: parties, lines, a VAT treatment, payment details.
 - **XRechnung** XML (UN/CEFACT CII, the German CIUS of EN 16931) through [zugpferd](https://github.com/alexzeitler/zugpferd).
 - **ZUGFeRD / Factur-X hybrid PDF/A-3b** with the XML embedded, built on [Prawn](https://prawnpdf.org) without Ghostscript, Java or hexapdf.
+- A **letter layout with branding**: logo, accent colour, own typeface, opening and closing lines, and the GiroCode (EPC QR code) next to the bank details.
 - **German VAT presets**: Regelbesteuerung, ermäßigter Satz, Kleinunternehmer (§ 19 UStG), Reverse Charge (§ 13b UStG), nicht im Inland steuerbar, innergemeinschaftliche Lieferung, Ausfuhr.
 - Wrappers for the official validators, [KoSIT](https://github.com/itplr-kosit/validator) and [veraPDF](https://verapdf.org), so CI proves every invoice shape you ship.
 
@@ -60,6 +61,26 @@ File.binwrite("2026-0001.pdf", pdf)
 | `EN16931::DE.export_supply` | G | goods exported outside the EU |
 
 A line or a document-level allowance/charge can carry its own `tax:`; otherwise the invoice's applies. `EN16931::Tax` builds any other treatment.
+
+### Branding
+
+The reference layout is a letter: letterhead, return-address line and recipient in the window position, title, details, lines, totals, payment block, footer with the tax ids. A `Branding` dresses it:
+
+```ruby
+branding = EN16931::Branding.new(
+  logo: "logo.png",                      # PNG or JPEG (RGB; alpha is fine); a path, the bytes or an IO
+  logo_position: :left,                  # or :right; the seller's name takes the other side
+  logo_height: 40,                       # points; width follows, capped by logo_max_width (180)
+  accent: "FF5A1F",                      # title and rules
+  font: { normal: "Inter-Regular.ttf", bold: "Inter-Bold.ttf" },   # TrueType, embedded; DejaVu Sans otherwise
+  intro: "vielen Dank für den Auftrag. Für die vereinbarte Leistung berechne ich wie folgt:",
+  closing: "Vielen Dank für die gute Zusammenarbeit.\n\nLena Beispiel",
+  giro_code: true                        # default: EPC QR code for euro invoices with an IBAN and an amount due
+)
+pdf = EN16931::PDF.render(invoice, branding:, locale: :de)
+```
+
+`Branding.new` rejects what would break PDF/A at construction time: CMYK JPEGs, interlaced PNGs, unknown image data. The GiroCode is drawn as vectors, so it adds no raster image; it carries the holder, IBAN, BIC, the amount due and the payment reference (or the invoice title) and is left out when the invoice is not in euro, has no IBAN or nothing is due.
 
 ### Your own layout
 

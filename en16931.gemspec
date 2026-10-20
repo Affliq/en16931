@@ -34,5 +34,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "nokogiri", "~> 1.16"
   spec.add_dependency "prawn", "~> 2.5"
   spec.add_dependency "prawn-table", "~> 0.2"
+  spec.add_dependency "rqrcode_core", "~> 2.0"
   spec.add_dependency "zugpferd", "~> 0.3"
 end

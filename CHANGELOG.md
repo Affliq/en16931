@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+- Branding for the reference layout: logo (PNG/JPEG with alpha), position, accent colour, own TrueType font, intro and closing texts.
+- The reference layout is now a letter: return-address line and recipient in the DIN 5008 window position, title in the accent colour.
+- GiroCode (EPC QR code, version 002) next to the bank details, drawn as vectors; on by default for euro invoices with an IBAN and an amount due.
+- `Branding.new` refuses CMYK JPEGs and interlaced PNGs, which PDF/A-3b with an sRGB output intent cannot carry.
+- New dependency: rqrcode_core.
+
 ## [0.1.0] - 2026-10-20
 
 - Invoice model with parties, lines, allowances and charges, payment details, periods and corrections.

@@ -2,11 +2,16 @@
 
 module EN16931
   module PDF
-    # The reference layout: a plain A4 invoice with every § 14 UStG item in
-    # its place. Applications with their own design draw their own Prawn
-    # document and call A3.attach; this one is the fallback and the test bed.
+    # The reference layout: an A4 letter with every § 14 UStG item in its
+    # place, dressed by a Branding (logo, accent, typeface, texts, GiroCode).
+    # Applications with their own design draw their own Prawn document and
+    # call A3.attach; this one is the default and the test bed.
     class Renderer
       FONT = "DejaVuSans"
+      BRAND_FONT = "Brand"
+      # The recipient block starts 45 mm below the page top (DIN 5008 window), unless the letterhead runs deeper.
+      ADDRESS_TOP = 45 * 72 / 25.4
+      GIRO_CODE_SIZE = 68
       LABELS = {
         de: { invoice: "Rechnung", credit_note: "Gutschrift", corrected: "Rechnungskorrektur", self_billed: "Gutschrift (Abrechnung durch den Leistungsempfänger)",
               partial: "Teilrechnung", prepayment: "Anzahlungsrechnung",
@@ -15,7 +20,7 @@ module EN16931
               net: "Netto", sum_net: "Summe netto", vat: "Umsatzsteuer", allowance: "Nachlass", charge: "Zuschlag", prepaid: "Bereits gezahlt",
               gross: "Gesamtbetrag", payable: "Zahlbetrag", payment: "Zahlung", iban: "IBAN", bic: "BIC", holder: "Kontoinhaber",
               reference_line: "Verwendungszweck", vat_id: "USt-IdNr.", tax_number: "Steuernummer", contact: "Kontakt",
-              units: { "C62" => "Stk.", "HUR" => "Std.", "DAY" => "Tage", "MON" => "Monate", "LS" => "pauschal", "E48" => "Leistung" } },
+              giro_code: "GiroCode", units: { "C62" => "Stk.", "HUR" => "Std.", "DAY" => "Tage", "MON" => "Monate", "LS" => "pauschal", "E48" => "Leistung" } },
         en: { invoice: "Invoice", credit_note: "Credit note", corrected: "Corrected invoice", self_billed: "Self-billed invoice",
               partial: "Partial invoice", prepayment: "Prepayment invoice",
               number: "Invoice number", date: "Invoice date", due: "Due date", delivery: "Delivery date", period: "Service period",
@@ -23,17 +28,18 @@ module EN16931
               net: "Net", sum_net: "Total net", vat: "VAT", allowance: "Discount", charge: "Charge", prepaid: "Prepaid",
               gross: "Total", payable: "Amount due", payment: "Payment", iban: "IBAN", bic: "BIC", holder: "Account holder",
               reference_line: "Payment reference", vat_id: "VAT id", tax_number: "Tax number", contact: "Contact",
-              units: { "C62" => "pcs", "HUR" => "h", "DAY" => "days", "MON" => "months", "LS" => "lump sum", "E48" => "service" } }
+              giro_code: "Scan to pay", units: { "C62" => "pcs", "HUR" => "h", "DAY" => "days", "MON" => "months", "LS" => "lump sum", "E48" => "service" } }
       }.freeze
 
-      attr_reader :invoice, :locale
+      attr_reader :invoice, :locale, :branding
 
       def self.title(invoice, locale) = "#{LABELS.fetch(locale)[invoice.type]} #{invoice.number}"
 
-      def initialize(invoice, locale: :de, accent: "15161A")
+      def initialize(invoice, locale: :de, branding: Branding.new)
         @invoice = invoice
         @locale = LABELS.key?(locale) ? locale : :de
-        @accent = accent
+        @branding = branding
+        @accent = branding.accent
       end
 
       def t(key) = LABELS.fetch(locale).fetch(key)
@@ -42,7 +48,8 @@ module EN16931
       def document
         @document ||= Prawn::Document.new(page_size: "A4", margin: [56, 50, 56, 50], compress: true, info: {}).tap do |pdf|
           pdf.font_families.update(FONT => { normal: EN16931.font_path("DejaVuSans.ttf"), bold: EN16931.font_path("DejaVuSans-Bold.ttf") })
-          pdf.font(FONT, size: 9.5)
+          pdf.font_families.update(BRAND_FONT => branding.font) if branding.font
+          pdf.font(branding.font ? BRAND_FONT : FONT, size: 9.5)
           draw(pdf)
         end
       end
@@ -50,25 +57,42 @@ module EN16931
       private
 
       def draw(pdf)
-        header(pdf)
+        letterhead(pdf)
         addresses(pdf)
         meta(pdf)
+        intro(pdf)
         lines_table(pdf)
         totals_block(pdf)
         notes(pdf)
         payment_block(pdf)
+        closing(pdf)
         footer(pdf)
       end
 
-      def header(pdf)
-        pdf.text invoice.seller.name, size: 14, style: :bold
-        pdf.move_down 2
-        pdf.text [invoice.seller.street, invoice.seller.address_line_2, [invoice.seller.postal_code, invoice.seller.city].compact.join(" ")].compact.join(" · "),
-                 size: 8, color: "666666"
-        pdf.move_down 24
+      # The seller's name, and the logo beside it when there is one. The
+      # logo keeps its aspect ratio and the name moves to the other side.
+      def letterhead(pdf)
+        top = pdf.cursor
+        name_align = :left
+        if (size = branding.logo_size)
+          width, height = size
+          x = branding.logo_position == :left ? pdf.bounds.left : pdf.bounds.right - width
+          pdf.image(StringIO.new(branding.logo), at: [x, top], width: width, height: height)
+          name_align = :right if branding.logo_position == :left
+        end
+        pdf.text invoice.seller.name, size: 14, style: :bold, align: name_align
+        pdf.move_cursor_to [pdf.cursor, top - (size ? size[1] : 0)].min
+        pdf.move_down 16
       end
 
+      # Return address in one small line, then the recipient: a letter that
+      # fits a window envelope.
       def addresses(pdf)
+        seller = invoice.seller
+        pdf.move_cursor_to [pdf.cursor, pdf.bounds.top - ADDRESS_TOP + 56].min
+        sender = [seller.name, seller.street, seller.address_line_2, [seller.postal_code, seller.city].compact.join(" ")].compact.reject(&:empty?)
+        pdf.text sender.join(" · "), size: 7, color: "666666"
+        pdf.move_down 6
         buyer = invoice.buyer
         pdf.text buyer.name, style: :bold
         buyer.address_lines.each { |line| pdf.text line }
@@ -77,7 +101,7 @@ module EN16931
       end
 
       def meta(pdf)
-        pdf.text Renderer.title(invoice, locale), size: 16, style: :bold
+        pdf.text Renderer.title(invoice, locale), size: 16, style: :bold, color: @accent
         pdf.move_down 8
         rows = [[t(:number), invoice.number], [t(:date), date(invoice.issue_date)]]
         rows << [t(:due), date(invoice.due_date)] if invoice.due_date
@@ -92,6 +116,20 @@ module EN16931
           column(0).text_color = "666666"
         end
         pdf.move_down 18
+      end
+
+      def intro(pdf)
+        return unless branding.intro
+
+        pdf.text branding.intro, size: 9.5
+        pdf.move_down 12
+      end
+
+      def closing(pdf)
+        return unless branding.closing
+
+        pdf.move_down 18
+        pdf.text branding.closing, size: 9.5
       end
 
       def lines_table(pdf)
@@ -145,6 +183,7 @@ module EN16931
         payment = invoice.payment
         return if payment.nil?
 
+        code_bottom = giro_code(pdf)
         pdf.text t(:payment), style: :bold
         pdf.move_down 3
         pdf.text payment.terms, size: 9 if payment.terms
@@ -153,11 +192,31 @@ module EN16931
         rows << [t(:iban), payment.iban.scan(/.{1,4}/).join(" ")] if payment.iban
         rows << [t(:bic), payment.bic] if payment.bic
         rows << [t(:reference_line), payment.reference] if payment.reference
-        return if rows.empty?
-
-        pdf.table(rows, cell_style: { borders: [], padding: [2, 0], size: 9.5 }, column_widths: [130, 300]) do
-          column(0).text_color = "666666"
+        unless rows.empty?
+          pdf.table(rows, cell_style: { borders: [], padding: [2, 0], size: 9.5 }, column_widths: [130, 280]) do
+            column(0).text_color = "666666"
+          end
         end
+        pdf.move_cursor_to [pdf.cursor, code_bottom].min if code_bottom
+      end
+
+      # The GiroCode floats at the right of the payment details and reports
+      # where it ends so the text below does not run into it.
+      def giro_code(pdf)
+        return nil unless branding.giro_code
+
+        payload = GiroCode.payload(invoice, remittance: Renderer.title(invoice, locale))
+        return nil unless payload
+
+        top = pdf.cursor
+        pdf.float do
+          pdf.bounding_box([pdf.bounds.right - GIRO_CODE_SIZE, top], width: GIRO_CODE_SIZE) do
+            GiroCode.draw(pdf, payload, size: GIRO_CODE_SIZE)
+            pdf.move_down 3
+            pdf.text t(:giro_code), size: 7, color: "666666", align: :center
+          end
+        end
+        top - GIRO_CODE_SIZE - 14
       end
 
       def footer(pdf)

@@ -17,10 +17,13 @@ class ValidationTest < Minitest::Test
       report = @kosit.validate(EN16931::XML.cii(Fixtures.all[name]))
       assert report.valid?, report.to_s
     end
+  end
 
+  Fixtures.renders.each_key do |name|
     define_method("test_#{name}_pdf_passes_verapdf") do
       skip "veraPDF not available" unless @vera.available?
-      report = @vera.validate(EN16931::PDF.render(Fixtures.all[name]))
+      invoice, options = Fixtures.renders[name]
+      report = @vera.validate(EN16931::PDF.render(invoice, **options))
       assert report.valid?, report.to_s
     end
   end
