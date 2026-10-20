@@ -35,6 +35,9 @@ module EN16931
         Dir.mktmpdir("en16931") do |tmp|
           path = File.join(tmp, "invoice.pdf")
           File.binwrite(path, pdf)
+          # The container runs as another user: mktmpdir's 0700 would hide the file.
+          File.chmod(0o755, tmp)
+          File.chmod(0o644, path)
           out, = if @command
                    Open3.capture2e(@command, "-f", flavour, "--format", "xml", path)
                  else
