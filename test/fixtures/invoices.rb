@@ -56,7 +56,8 @@ module Fixtures
         lines: [EN16931::Line.new(description: "Unboxing-Video", unit_price: "400.00")]
       )),
       reverse_charge_eu: EN16931::Invoice.new(**base(
-        number: "2026-0004", buyer: BUYER_FR, tax: EN16931::DE.reverse_charge,
+        number: "2026-0004", buyer: BUYER_FR.with(contact_name: "Claire Martin"), tax: EN16931::DE.reverse_charge,
+        references: { "Centre de coûts" => "MKT-12" },
         lines: [EN16931::Line.new(description: "Content creation October 2026", unit_price: "800.00")]
       )),
       third_country_usd: EN16931::Invoice.new(**base(

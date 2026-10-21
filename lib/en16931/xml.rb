@@ -47,7 +47,8 @@ module EN16931
       doc.due_date = invoice.due_date
       doc.delivery_date = invoice.delivery_date
       doc.buyer_reference = invoice.buyer_reference
-      doc.note = invoice.notes.join("\n") unless invoice.notes.empty?
+      notes = invoice.references.map { |name, value| "#{name}: #{value}" } + invoice.notes
+      doc.note = notes.join("\n") unless notes.empty?
       hide_vat_ids = invoice.taxes.any?(&:forbids_vat_identifiers?)
       doc.seller = party(invoice.seller, vat_identifier: !hide_vat_ids, seller: true)
       doc.buyer = party(invoice.buyer, vat_identifier: !hide_vat_ids)

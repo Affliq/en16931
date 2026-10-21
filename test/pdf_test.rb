@@ -112,4 +112,35 @@ class PDFTest < Minitest::Test
     widest = page.runs.select { |run| run.text.include?("Rechnungsnummer auf") }.map(&:endx).max
     assert widest < code_left, "terms end at #{widest}, the GiroCode starts at #{code_left}"
   end
+
+  def test_buyer_contact_and_vat_id_are_printed
+    buyer = Fixtures::BUYER_DE.with(contact_name: "Jana Einkauf")
+    text = page_text(EN16931::Invoice.new(**Fixtures.base(buyer:)))
+    assert_includes text, "z. Hd. Jana Einkauf"
+    assert_includes text, "USt-IdNr. DE987654321"
+  end
+
+  def test_contact_equal_to_the_buyer_name_is_not_repeated
+    buyer = Fixtures::BUYER_DE.with(contact_name: Fixtures::BUYER_DE.name)
+    refute_includes page_text(EN16931::Invoice.new(**Fixtures.base(buyer:))), "z. Hd."
+  end
+
+  def test_buyer_vat_id_is_left_out_outside_the_scope_of_vat
+    buyer = Fixtures::BUYER_DE.with(country: "CH", vat_id: "CHE-123.456.789 MWST")
+    text = page_text(EN16931::Invoice.new(**Fixtures.base(buyer:, tax: EN16931::DE.not_taxable_abroad)))
+    refute_includes text, "CHE-123.456.789"
+  end
+
+  def test_references_are_printed_in_the_header
+    invoice = EN16931::Invoice.new(**Fixtures.base(references: { "Kostenstelle" => "4711", "Bestellnummer" => "B-99" }))
+    page = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice))).pages.first
+    reference = page.runs.find { |run| run.text == "PO-4711" }
+    cost_centre = page.runs.find { |run| run.text == "4711" }
+    assert_operator cost_centre.y, :<, reference.y
+    assert_includes page.text, "Bestellnummer"
+  end
+
+  private
+
+  def page_text(invoice) = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice))).pages.first.text
 end

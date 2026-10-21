@@ -97,4 +97,9 @@ class XMLTest < Minitest::Test
     assert_equal "1871.25".to_d, text(sum, "./ram:DuePayableAmount").to_d
     assert_equal "false", text(doc, "//ram:SpecifiedTradeAllowanceCharge/ram:ChargeIndicator/udt:Indicator")
   end
+
+  def test_references_travel_as_notes_ahead_of_the_notes
+    invoice = EN16931::Invoice.new(**Fixtures.base(references: { "Kostenstelle" => "4711" }, notes: ["Danke."]))
+    assert_equal "Kostenstelle: 4711\nDanke.", text(cii(invoice), "//rsm:ExchangedDocument/ram:IncludedNote/ram:Content")
+  end
 end

@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-21
+
+- The recipient block shows the buyer's contact person ("z. Hd.") and VAT identifier. Like the XML, it leaves the VAT identifier out for invoices outside the scope of VAT (category O).
+- `Invoice#references` takes further references of the buyer, such as a cost centre or an order number. The layout prints them in the header below the buyer reference; the XML, which has no field for them, carries them as notes.
+
 ## [0.1.2] - 2026-10-21
 
 - Long payment terms no longer run under the GiroCode; beside it the payment block is narrower.

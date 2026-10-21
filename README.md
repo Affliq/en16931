@@ -37,6 +37,7 @@ buyer = EN16931::Party.new(
 invoice = EN16931::Invoice.new(
   number: "2026-0001", issue_date: Date.new(2026, 10, 20), due_date: Date.new(2026, 11, 3),
   seller: seller, buyer: buyer, buyer_reference: "PO-4711",
+  references: { "Kostenstelle" => "4711" },     # printed in the header, an XML note
   tax: EN16931::DE.standard,
   lines: [EN16931::Line.new(description: "Produktvideo TikTok, 60 Sekunden", unit_price: "1500.00")],
   payment: EN16931::Payment.new(iban: "DE89 3704 0044 0532 0130 00", bic: "COBADEFFXXX", holder: "Lena Beispiel",

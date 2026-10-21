@@ -81,8 +81,11 @@ module EN16931
         pdf.move_down 6
         buyer = invoice.buyer
         pdf.text buyer.name, style: :bold
+        pdf.text "#{t(:attention)} #{buyer.contact_name}" if buyer.contact_name && buyer.contact_name != buyer.name
         buyer.address_lines.each { |line| pdf.text line }
         pdf.text country_name(buyer.country) unless buyer.country == invoice.seller.country
+        # Same rule as the XML: outside the scope of VAT no VAT identifiers.
+        pdf.text "#{t(:vat_id)} #{buyer.vat_id}" if buyer.vat_id && invoice.taxes.none?(&:forbids_vat_identifiers?)
         pdf.move_down 28
       end
 
@@ -94,6 +97,7 @@ module EN16931
         rows << [t(:delivery), date(invoice.delivery_date)] if invoice.delivery_date
         rows << [t(:period), "#{date(invoice.period.begin)} – #{date(invoice.period.end)}"] if invoice.period
         rows << [t(:reference), invoice.buyer_reference] if invoice.buyer_reference
+        rows.concat(invoice.references.to_a)
         if invoice.preceding
           rows << [t(:preceding),
                    [invoice.preceding[:number], (date(invoice.preceding[:issue_date]) if invoice.preceding[:issue_date])].compact.join(", ")]

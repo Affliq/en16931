@@ -14,12 +14,14 @@ module EN16931
     }.freeze
 
     attr_reader :number, :issue_date, :due_date, :seller, :buyer, :lines, :tax, :currency, :buyer_reference,
-                :type, :payment, :period, :notes, :delivery_date, :preceding, :allowances, :charges, :prepaid
+                :type, :payment, :period, :notes, :references, :delivery_date, :preceding, :allowances, :charges, :prepaid
 
     # @param preceding [Hash, nil] { number:, issue_date: } of the invoice a correction refers to (BG-3)
     # @param period [Range<Date>, nil] the invoicing period (BG-14), e.g. a retainer month
+    # @param references [Hash{String => String}] further references of the buyer, e.g. a cost centre; printed
+    #   in the header and, having no field of their own in EN 16931, carried in the XML as notes
     def initialize(number:, issue_date:, seller:, buyer:, lines:, tax:, type: :invoice, due_date: nil, currency: "EUR",
-                   buyer_reference: nil, payment: nil, period: nil, notes: [], delivery_date: nil, preceding: nil,
+                   buyer_reference: nil, payment: nil, period: nil, notes: [], references: {}, delivery_date: nil, preceding: nil,
                    allowances: [], charges: [], prepaid: 0)
       raise ArgumentError, "unknown type #{type.inspect}" unless TYPES.key?(type)
       raise ArgumentError, "an invoice needs at least one line" if lines.empty?
@@ -37,6 +39,7 @@ module EN16931
       @payment = payment
       @period = period
       @notes = Array(notes)
+      @references = references.to_h
       @delivery_date = delivery_date
       @preceding = preceding
       # The list decides the direction; the flag follows it.
