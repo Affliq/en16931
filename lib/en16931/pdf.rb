@@ -6,6 +6,7 @@ require "prawn/table"
 require_relative "pdf/xmp"
 require_relative "pdf/giro_code"
 require_relative "pdf/a3"
+require_relative "pdf/labels"
 require_relative "pdf/renderer"
 
 module EN16931

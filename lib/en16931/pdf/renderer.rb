@@ -12,32 +12,14 @@ module EN16931
       # The recipient block starts 45 mm below the page top (DIN 5008 window), unless the letterhead runs deeper.
       ADDRESS_TOP = 45 * 72 / 25.4
       GIRO_CODE_SIZE = 68
-      LABELS = {
-        de: { invoice: "Rechnung", credit_note: "Gutschrift", corrected: "Rechnungskorrektur", self_billed: "Gutschrift (Abrechnung durch den Leistungsempfänger)",
-              partial: "Teilrechnung", prepayment: "Anzahlungsrechnung",
-              number: "Rechnungsnummer", date: "Rechnungsdatum", due: "Fällig am", delivery: "Leistungsdatum", period: "Leistungszeitraum",
-              reference: "Ihre Referenz", preceding: "Zur Rechnung", pos: "Pos.", description: "Beschreibung", qty: "Menge", unit_price: "Einzelpreis",
-              net: "Netto", sum_net: "Summe netto", vat: "Umsatzsteuer", allowance: "Nachlass", charge: "Zuschlag", prepaid: "Bereits gezahlt",
-              gross: "Gesamtbetrag", payable: "Zahlbetrag", payment: "Zahlung", iban: "IBAN", bic: "BIC", holder: "Kontoinhaber",
-              reference_line: "Verwendungszweck", vat_id: "USt-IdNr.", tax_number: "Steuernummer", contact: "Kontakt",
-              giro_code: "GiroCode", units: { "C62" => "Stk.", "HUR" => "Std.", "DAY" => "Tage", "MON" => "Monate", "LS" => "pauschal", "E48" => "Leistung" } },
-        en: { invoice: "Invoice", credit_note: "Credit note", corrected: "Corrected invoice", self_billed: "Self-billed invoice",
-              partial: "Partial invoice", prepayment: "Prepayment invoice",
-              number: "Invoice number", date: "Invoice date", due: "Due date", delivery: "Delivery date", period: "Service period",
-              reference: "Your reference", preceding: "Refers to invoice", pos: "No.", description: "Description", qty: "Quantity", unit_price: "Unit price",
-              net: "Net", sum_net: "Total net", vat: "VAT", allowance: "Discount", charge: "Charge", prepaid: "Prepaid",
-              gross: "Total", payable: "Amount due", payment: "Payment", iban: "IBAN", bic: "BIC", holder: "Account holder",
-              reference_line: "Payment reference", vat_id: "VAT id", tax_number: "Tax number", contact: "Contact",
-              giro_code: "Scan to pay", units: { "C62" => "pcs", "HUR" => "h", "DAY" => "days", "MON" => "months", "LS" => "lump sum", "E48" => "service" } }
-      }.freeze
 
       attr_reader :invoice, :locale, :branding
 
-      def self.title(invoice, locale) = "#{LABELS.fetch(locale)[invoice.type]} #{invoice.number}"
+      def self.title(invoice, locale) = "#{LABELS.fetch(self.locale(locale))[invoice.type]} #{invoice.number}"
 
       def initialize(invoice, locale: :de, branding: Branding.new)
         @invoice = invoice
-        @locale = LABELS.key?(locale) ? locale : :de
+        @locale = Renderer.locale(locale)
         @branding = branding
         @accent = branding.accent
       end
@@ -48,7 +30,11 @@ module EN16931
       def document
         @document ||= Prawn::Document.new(page_size: "A4", margin: [56, 50, 56, 50], compress: true, info: {}).tap do |pdf|
           pdf.font_families.update(FONT => { normal: EN16931.font_path("DejaVuSans.ttf"), bold: EN16931.font_path("DejaVuSans-Bold.ttf") })
-          pdf.font_families.update(BRAND_FONT => branding.font) if branding.font
+          if branding.font
+            pdf.font_families.update(BRAND_FONT => branding.font)
+            # Glyphs the brand font lacks (often € in a subset) come from DejaVu, never as .notdef.
+            pdf.fallback_fonts([FONT])
+          end
           pdf.font(branding.font ? BRAND_FONT : FONT, size: 9.5)
           draw(pdf)
         end
@@ -249,12 +235,12 @@ module EN16931
         int, frac = text.split(".")
         frac = frac&.sub(/0+\z/, "") if decimals.min < decimals.max
         frac = nil if frac && frac.empty?
-        sep = locale == :de ? [".", ","] : [",", "."]
+        sep = FORMATS.fetch(locale)
         int = int.reverse.scan(/\d{1,3}/).join(sep[0]).reverse
         [int, frac].compact.join(sep[1])
       end
 
-      def date(d) = locale == :de ? d.strftime("%d.%m.%Y") : d.strftime("%Y-%m-%d")
+      def date(d) = d.strftime(FORMATS.fetch(locale)[2])
       def unit(code) = LABELS.fetch(locale)[:units].fetch(code, code)
 
       def country_name(code)

@@ -80,6 +80,8 @@ branding = EN16931::Branding.new(
 pdf = EN16931::PDF.render(invoice, branding:, locale: :de)
 ```
 
+`locale:` sets the labels, number and date formats of the layout: `:de`, `:en`, `:cs`, `:da`, `:es`, `:et`, `:fi`, `:fr`, `:it`, `:lv`, `:nl`, `:pl`, `:pt`, `:ro`, `:ru`, `:sv`, `:tr` or `:zh` (a string works too; anything else falls back to German). DejaVu Sans covers every one of them but Chinese: for `:zh` pass a TrueType font with CJK glyphs as the branding font. Glyphs a branding font lacks, such as `€` in a subset, are taken from DejaVu Sans.
+
 `Branding.new` rejects what would break PDF/A at construction time: CMYK JPEGs, interlaced PNGs, unknown image data. The GiroCode is drawn as vectors, so it adds no raster image; it carries the holder, IBAN, BIC, the amount due and the payment reference (or the invoice title) and is left out when the invoice is not in euro, has no IBAN or nothing is due.
 
 ### Your own layout

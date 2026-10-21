@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-21
+
+- The reference layout speaks 18 languages: German and English plus Czech, Danish, Spanish, Estonian, Finnish, French, Italian, Latvian, Dutch, Polish, Portuguese, Romanian, Russian, Swedish, Turkish and Chinese, each with its own number and date format.
+- `PDF.render` no longer raises a `KeyError` for a locale the layout does not know; it falls back to German like the renderer does. Locales may be given as strings.
+- Glyphs a branding font lacks are drawn with DejaVu Sans instead of the `.notdef` glyph, which PDF/A forbids.
+
 ## [0.1.0] - 2026-10-20
 
 - Invoice model with parties, lines, allowances and charges, payment details, periods and corrections.
