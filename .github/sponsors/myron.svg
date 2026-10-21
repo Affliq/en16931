@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Myron — Wordmark "MYRON".
+     Serif letters drawn as outlined vector paths (font-independent, deterministic
+     rasterizing). The O is the bronze discus. Ivory on anthracite.
+     Canvas 1400×420, baseline at y=300, cap height 200 (y 100..300). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 90 1150 220">
+  <defs>
+    <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#F7F1E7"/>
+      <stop offset="100%" stop-color="#E9E0D1"/>
+    </linearGradient>
+    <radialGradient id="bronze" cx="38%" cy="34%" r="72%">
+      <stop offset="0%"  stop-color="#D4A063"/>
+      <stop offset="50%" stop-color="#C08A4B"/>
+      <stop offset="100%" stop-color="#AC793D"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Transparent background (canonical wordmark asset). Place on anthracite for
+       the splash screen, or on ivory by recoloring the letters to anthracite. -->
+
+  <!-- ===== letters: cap height 200 (y 100 top .. 300 baseline), stem ~34, serif slabs ===== -->
+  <g fill="#14110E">
+
+    <!-- M  (x 120..330) -->
+    <g>
+      <path d="M120 100 H154 V300 H120 Z"/>            <!-- left leg -->
+      <path d="M296 100 H330 V300 H296 Z"/>            <!-- right leg -->
+      <path d="M120 100 L225 250 L330 100 L296 100 L225 200 L154 100 Z"/> <!-- chevron -->
+      <rect x="108" y="100" width="54" height="9"/>     <!-- serifs -->
+      <rect x="108" y="291" width="54" height="9"/>
+      <rect x="288" y="100" width="54" height="9"/>
+      <rect x="288" y="291" width="54" height="9"/>
+    </g>
+
+    <!-- Y  (x 380..560, center 470) -->
+    <g>
+      <path d="M380 100 L453 215 L487 215 L560 100 L524 100 L470 190 L416 100 Z"/> <!-- arms -->
+      <path d="M453 205 H487 V300 H453 Z"/>            <!-- stem -->
+      <rect x="368" y="100" width="44" height="9"/>     <!-- top-left serif -->
+      <rect x="528" y="100" width="44" height="9"/>     <!-- top-right serif -->
+      <rect x="441" y="291" width="58" height="9"/>     <!-- baseline serif -->
+    </g>
+
+    <!-- R  (x 610..770) -->
+    <g>
+      <path d="M610 100 H700 a72 72 0 0 1 0 144 H644 V300 H610 Z M644 134 V210 H700 a38 38 0 0 0 0 -76 Z"
+            fill-rule="evenodd"/>                        <!-- bowl + stem -->
+      <path d="M676 232 L770 300 L724 300 L640 240 Z"/>  <!-- leg -->
+      <rect x="598" y="100" width="58" height="9"/>      <!-- top serif -->
+      <rect x="598" y="291" width="58" height="9"/>      <!-- baseline serif -->
+    </g>
+
+    <!-- N  (x 1050..1230) -->
+    <g>
+      <path d="M1050 100 H1084 V300 H1050 Z"/>          <!-- left stem -->
+      <path d="M1196 100 H1230 V300 H1196 Z"/>          <!-- right stem -->
+      <path d="M1050 100 H1092 L1196 270 V300 H1186 L1084 132 V100 Z"/> <!-- diagonal -->
+      <rect x="1040" y="100" width="54" height="9"/>     <!-- serifs -->
+      <rect x="1040" y="291" width="54" height="9"/>
+      <rect x="1186" y="100" width="54" height="9"/>
+      <rect x="1186" y="291" width="54" height="9"/>
+    </g>
+
+  </g>
+
+  <!-- O  = bronze discus ring, the 4th glyph between R and N (center 890, cap height).
+       True annulus (evenodd) so the counter is transparent on any background. -->
+  <path fill-rule="evenodd" fill="url(#bronze)"
+        d="M790 200 a100 100 0 1 0 200 0 a100 100 0 1 0 -200 0 Z
+           M832 200 a58 58 0 1 1 116 0 a58 58 0 1 1 -116 0 Z"/>
+
+</svg>
