@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-21
+
+- Long payment terms no longer run under the GiroCode; beside it the payment block is narrower.
+
 ## [0.1.1] - 2026-10-21
 
 - The reference layout speaks 18 languages: German and English plus Czech, Danish, Spanish, Estonian, Finnish, French, Italian, Latvian, Dutch, Polish, Portuguese, Romanian, Russian, Swedish, Turkish and Chinese, each with its own number and date format.

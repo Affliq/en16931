@@ -103,4 +103,13 @@ class PDFTest < Minitest::Test
     assert_includes pdf, "<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>"
     assert_includes pdf, "<fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>"
   end
+
+  def test_long_payment_terms_keep_clear_of_the_giro_code
+    terms = "Bitte überweisen Sie den vollständigen Betrag unter Angabe der Rechnungsnummer auf das unten genannte Konto. " * 2
+    invoice = EN16931::Invoice.new(**Fixtures.base(payment: @invoice.payment.with(terms:)))
+    page = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice))).pages.first
+    code_left = 595.28 - 50 - EN16931::PDF::Renderer::GIRO_CODE_SIZE
+    widest = page.runs.select { |run| run.text.include?("Rechnungsnummer auf") }.map(&:endx).max
+    assert widest < code_left, "terms end at #{widest}, the GiroCode starts at #{code_left}"
+  end
 end

@@ -170,20 +170,28 @@ module EN16931
         return if payment.nil?
 
         code_bottom = giro_code(pdf)
-        pdf.text t(:payment), style: :bold
-        pdf.move_down 3
-        pdf.text payment.terms, size: 9 if payment.terms
+        # Beside the GiroCode the text keeps clear of it.
+        width = code_bottom ? pdf.bounds.width - GIRO_CODE_SIZE - 12 : pdf.bounds.width
+        pdf.bounding_box([pdf.bounds.left, pdf.cursor], width: width) do
+          pdf.text t(:payment), style: :bold
+          pdf.move_down 3
+          pdf.text payment.terms, size: 9 if payment.terms
+          payment_details(pdf, payment)
+        end
+        pdf.move_cursor_to [pdf.cursor, code_bottom].min if code_bottom
+      end
+
+      def payment_details(pdf, payment)
         rows = []
         rows << [t(:holder), payment.holder] if payment.holder
         rows << [t(:iban), payment.iban.scan(/.{1,4}/).join(" ")] if payment.iban
         rows << [t(:bic), payment.bic] if payment.bic
         rows << [t(:reference_line), payment.reference] if payment.reference
-        unless rows.empty?
-          pdf.table(rows, cell_style: { borders: [], padding: [2, 0], size: 9.5 }, column_widths: [130, 280]) do
-            column(0).text_color = "666666"
-          end
+        return if rows.empty?
+
+        pdf.table(rows, cell_style: { borders: [], padding: [2, 0], size: 9.5 }, column_widths: [130, 280]) do
+          column(0).text_color = "666666"
         end
-        pdf.move_cursor_to [pdf.cursor, code_bottom].min if code_bottom
       end
 
       # The GiroCode floats at the right of the payment details and reports
