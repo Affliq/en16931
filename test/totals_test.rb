@@ -35,4 +35,17 @@ class TotalsTest < Minitest::Test
     line = EN16931::Line.new(description: "x", quantity: "1.333", unit_price: "9.99")
     assert_equal BigDecimal("13.32"), line.net
   end
+
+  def test_amounts_refuse_floats
+    assert_raises(ArgumentError) { EN16931::Line.new(description: "x", unit_price: 19.99) }
+    assert_raises(ArgumentError) { EN16931::Line.new(description: "x", unit_price: "1", quantity: 1.5) }
+    assert_raises(ArgumentError) { EN16931::AllowanceCharge.new(amount: 0.1 + 0.2, reason: "x") }
+    assert_raises(ArgumentError) { EN16931::Tax.new(category: "S", rate: 19.0) }
+  end
+
+  def test_amounts_accept_bigdecimal_integer_and_string
+    [BigDecimal("1500.00"), 1500, "1500.00"].each do |price|
+      assert_equal BigDecimal("1500"), EN16931::Line.new(description: "x", unit_price: price).unit_price
+    end
+  end
 end

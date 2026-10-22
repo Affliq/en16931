@@ -8,7 +8,7 @@ module EN16931
   # DAY day, MON month, LS lump sum, E48 service unit.
   Line = Data.define(:description, :quantity, :unit, :unit_price, :tax, :note, :sellers_id, :period) do
     def initialize(description:, unit_price:, quantity: 1, unit: "C62", tax: nil, note: nil, sellers_id: nil, period: nil)
-      super(description:, quantity: BigDecimal(quantity.to_s), unit:, unit_price: BigDecimal(unit_price.to_s),
+      super(description:, quantity: EN16931.decimal(quantity), unit:, unit_price: EN16931.decimal(unit_price),
             tax:, note:, sellers_id:, period:)
     end
 
@@ -18,7 +18,7 @@ module EN16931
   # A document-level allowance (discount) or charge (BG-20 / BG-21).
   AllowanceCharge = Data.define(:amount, :reason, :charge, :reason_code, :tax) do
     def initialize(amount:, reason:, charge: false, reason_code: nil, tax: nil)
-      super(amount: BigDecimal(amount.to_s), reason:, charge:, reason_code:, tax:)
+      super(amount: EN16931.decimal(amount), reason:, charge:, reason_code:, tax:)
     end
 
     def charge? = charge

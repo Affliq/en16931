@@ -10,7 +10,7 @@ module EN16931
   #   O  not subject to VAT     L/M Canary Islands / Ceuta-Melilla (unused here)
   Tax = Data.define(:category, :rate, :exemption_reason, :exemption_code) do
     def initialize(category:, rate: 0, exemption_reason: nil, exemption_code: nil)
-      super(category: category.to_s, rate: BigDecimal(rate.to_s), exemption_reason:, exemption_code:)
+      super(category: category.to_s, rate: EN16931.decimal(rate), exemption_reason:, exemption_code:)
     end
 
     def taxed? = category == "S"

@@ -45,7 +45,7 @@ module EN16931
       # The list decides the direction; the flag follows it.
       @allowances = allowances.map { |a| a.with(charge: false) }
       @charges = charges.map { |c| c.with(charge: true) }
-      @prepaid = BigDecimal(prepaid.to_s)
+      @prepaid = EN16931.decimal(prepaid)
     end
 
     def type_code = TYPES.fetch(type)

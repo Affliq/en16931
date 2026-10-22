@@ -48,7 +48,7 @@ invoice = EN16931::Invoice.new(
   seller: seller, buyer: buyer, buyer_reference: "PO-4711",
   references: { "Kostenstelle" => "4711" },     # printed in the header, an XML note
   tax: EN16931::DE.standard,
-  lines: [EN16931::Line.new(description: "Produktvideo TikTok, 60 Sekunden", unit_price: "1500.00")],
+  lines: [EN16931::Line.new(description: "Produktvideo TikTok, 60 Sekunden", unit_price: BigDecimal("1500.00"))],
   payment: EN16931::Payment.new(iban: "DE89 3704 0044 0532 0130 00", bic: "COBADEFFXXX", holder: "Lena Beispiel",
                                 terms: "Zahlbar innerhalb von 14 Tagen ohne Abzug.")
 )
@@ -57,6 +57,8 @@ xml = EN16931::XML.cii(invoice)                 # XRechnung 3.0 (CII)
 pdf = EN16931::PDF.render(invoice)              # ZUGFeRD hybrid PDF/A-3b, profile XRECHNUNG
 File.binwrite("2026-0001.pdf", pdf)
 ```
+
+Amounts, quantities and rates are kept as `BigDecimal`. They accept a `BigDecimal`, an `Integer` or a decimal `String` such as `"1500.00"`; a `Float` raises an `ArgumentError`, because it has already lost the exact value.
 
 ### Tax cases
 
@@ -116,7 +118,7 @@ EN16931::Invoice.new(type: :corrected, preceding: { number: "2026-0001", issue_d
 EN16931::Invoice.new(type: :credit_note, ...)
 EN16931::Invoice.new(type: :self_billed, ...)                     # Gutschrift im Sinne von § 14 Abs. 2 UStG
 EN16931::Invoice.new(period: Date.new(2026, 10, 1)..Date.new(2026, 10, 31), ...)   # BG-14, e.g. a retainer month
-EN16931::Invoice.new(prepaid: "200.00", allowances: [EN16931::AllowanceCharge.new(amount: "100.00", reason: "Treuerabatt", reason_code: "95")], ...)
+EN16931::Invoice.new(prepaid: BigDecimal("200.00"), allowances: [EN16931::AllowanceCharge.new(amount: BigDecimal("100.00"), reason: "Treuerabatt", reason_code: "95")], ...)
 ```
 
 ### Validation

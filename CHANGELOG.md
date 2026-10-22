@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-22
+
+- **Breaking:** amounts, quantities and rates (`Line#unit_price`, `Line#quantity`, `AllowanceCharge#amount`, `Tax#rate`, `Invoice#prepaid`) refuse a `Float` with an `ArgumentError`. Pass a `BigDecimal`, an `Integer` or a decimal `String`.
+
 ## [0.1.3] - 2026-10-21
 
 - The recipient block shows the buyer's contact person ("z. Hd.") and VAT identifier. Like the XML, it leaves the VAT identifier out for invoices outside the scope of VAT (category O).

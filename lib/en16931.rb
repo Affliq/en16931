@@ -21,6 +21,14 @@ module EN16931
   ROOT = File.expand_path("..", __dir__)
 
   def self.font_path(name) = File.join(ROOT, "fonts", name)
+
+  # Amounts, quantities and rates as BigDecimal. A Float is refused: it has
+  # already lost the exact decimal value an invoice needs.
+  def self.decimal(value)
+    raise ArgumentError, "#{value.inspect} is a Float; pass a BigDecimal, an Integer or a decimal String" if value.is_a?(Float)
+
+    BigDecimal(value.to_s)
+  end
 end
 
 require_relative "en16931/version"
