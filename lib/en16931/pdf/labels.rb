@@ -166,6 +166,9 @@ module EN16931
 
       # A supported locale as a symbol; anything unknown falls back to German.
       def self.locale(value) = LABELS.key?(value&.to_sym) ? value.to_sym : :de
+
+      # Country names per locale from CLDR, see `rake countries`.
+      def self.countries = @countries ||= YAML.load_file(File.join(ROOT, "data", "countries.yml"))
     end
   end
 end

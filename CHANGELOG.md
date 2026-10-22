@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-22
+
+- The buyer's country is named in the invoice language for every ISO country, from the Unicode CLDR (`data/countries.yml`, `rake countries`). Before, only nine countries had a name, in German.
+
 ## [0.2.0] - 2026-10-22
 
 - **Breaking:** amounts, quantities and rates (`Line#unit_price`, `Line#quantity`, `AllowanceCharge#amount`, `Tax#rate`, `Invoice#prepaid`) refuse a `Float` with an `ArgumentError`. Pass a `BigDecimal`, an `Integer` or a decimal `String`.

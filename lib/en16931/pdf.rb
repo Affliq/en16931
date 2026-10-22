@@ -2,6 +2,7 @@
 
 require "prawn"
 require "stringio"
+require "yaml"
 require "prawn/table"
 require_relative "pdf/xmp"
 require_relative "pdf/giro_code"

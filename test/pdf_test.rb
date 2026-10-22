@@ -140,7 +140,23 @@ class PDFTest < Minitest::Test
     assert_includes page.text, "Bestellnummer"
   end
 
+  def test_buyer_country_is_named_in_the_invoice_language
+    invoice = EN16931::Invoice.new(**Fixtures.base(buyer: Fixtures::BUYER_DE.with(country: "ES"), tax: EN16931::DE.reverse_charge))
+    assert_includes page_text(invoice), "Spanien"
+    assert_includes page_text(invoice, locale: :en), "Spain"
+    assert_includes page_text(invoice, locale: :fr), "Espagne"
+  end
+
+  def test_unknown_country_code_is_printed_as_is
+    invoice = EN16931::Invoice.new(**Fixtures.base(buyer: Fixtures::BUYER_DE.with(country: "CQ"), tax: EN16931::DE.reverse_charge))
+    assert_includes page_text(invoice), "CQ"
+  end
+
+  def test_buyer_country_is_left_out_at_home
+    refute_includes page_text(EN16931::Invoice.new(**Fixtures.base)), "Deutschland"
+  end
+
   private
 
-  def page_text(invoice) = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice))).pages.first.text
+  def page_text(invoice, **) = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice, **))).pages.first.text
 end

@@ -255,10 +255,7 @@ module EN16931
       def date(d) = d.strftime(FORMATS.fetch(locale)[2])
       def unit(code) = LABELS.fetch(locale)[:units].fetch(code, code)
 
-      def country_name(code)
-        { "DE" => "Deutschland", "AT" => "Österreich", "CH" => "Schweiz", "FR" => "Frankreich", "NL" => "Niederlande",
-          "US" => "USA", "GB" => "Vereinigtes Königreich", "IE" => "Irland", "LU" => "Luxemburg" }.fetch(code, code)
-      end
+      def country_name(code) = Renderer.countries.fetch(locale.to_s).fetch(code, code)
     end
   end
 end
