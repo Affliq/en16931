@@ -2,11 +2,11 @@
 
 <p align="center"><sub>SPONSORED BY</sub></p>
 <p align="center">
-  <a href="https://www.company-mood.com"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/sponsors/companymood-dark.svg"><img src=".github/sponsors/companymood.svg" alt="CompanyMood" height="40"></picture></a>
+  <a href="https://www.company-mood.com"><img src=".github/sponsors/companymood.svg#gh-light-mode-only" alt="CompanyMood" height="40"><img src=".github/sponsors/companymood-dark.svg#gh-dark-mode-only" alt="CompanyMood" height="40"></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://myron.app"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/sponsors/myron-dark.svg"><img src=".github/sponsors/myron.svg" alt="Myron" height="44"></picture></a>
+  <a href="https://myron.app"><img src=".github/sponsors/myron.svg#gh-light-mode-only" alt="Myron" height="44"><img src=".github/sponsors/myron-dark.svg#gh-dark-mode-only" alt="Myron" height="44"></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://www.affliq.com"><picture><source media="(prefers-color-scheme: dark)" srcset=".github/sponsors/affliq-dark.svg"><img src=".github/sponsors/affliq.svg" alt="Affliq" height="42"></picture></a>
+  <a href="https://www.affliq.com"><img src=".github/sponsors/affliq.svg#gh-light-mode-only" alt="Affliq" height="42"><img src=".github/sponsors/affliq-dark.svg#gh-dark-mode-only" alt="Affliq" height="42"></a>
 </p>
 
 EN 16931 e-invoices for Ruby, in pure Ruby.
