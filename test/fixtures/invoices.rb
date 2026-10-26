@@ -78,6 +78,12 @@ module Fixtures
         notes: ["Korrektur der Rechnung 2026-0001: Menge berichtigt."],
         lines: [EN16931::Line.new(description: "Produktvideo TikTok, 60 Sekunden", unit_price: "1400.00")]
       )),
+      # A cancellation (Storno) as a correction with negative quantities, at 0 % VAT.
+      cancellation_reverse_charge: EN16931::Invoice.new(**base(
+        number: "2026-0009", type: :corrected, buyer: BUYER_FR, tax: EN16931::DE.reverse_charge,
+        preceding: { number: "2026-0004", issue_date: DATE }, notes: ["Storno der Rechnung 2026-0004."],
+        lines: [EN16931::Line.new(description: "Produktvideo TikTok, 60 Sekunden", quantity: -1, unit_price: "1500.00")]
+      )),
       credit_note: EN16931::Invoice.new(**base(
         number: "2026-G001", type: :credit_note, preceding: { number: "2026-0002", issue_date: DATE },
         lines: [EN16931::Line.new(description: "Gutschrift Story-Serie, nicht geliefert", unit_price: "150.00")]

@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-26
+
+- A cancellation with negative quantities at 0 % VAT (small business, reverse charge, outside the scope) no longer writes a VAT amount of "-0.00" into the breakdown, which failed BR-CO-14 against the total of "0.00".
+- The reference layout prints negative quantities and amounts with their minus sign; it dropped the sign while grouping the thousands, so a cancellation read like an invoice.
+
 ## [0.2.1] - 2026-10-22
 
 - The buyer's country is named in the invoice language for every ISO country, from the Unicode CLDR (`data/countries.yml`, `rake countries`). Before, only nine countries had a name, in German.

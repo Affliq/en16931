@@ -23,6 +23,13 @@ class TotalsTest < Minitest::Test
     assert_equal "E", t.subtotals.first.tax.category
   end
 
+  def test_a_negative_base_at_zero_percent_has_no_negative_zero
+    t = Fixtures.all[:cancellation_reverse_charge].totals
+    assert_equal BigDecimal("-1500.00"), t.net
+    assert_equal "0.0", t.subtotals.first.amount.to_s("F")
+    assert_equal BigDecimal("-1500.00"), t.payable
+  end
+
   def test_prepaid_and_charges
     t = Fixtures.all[:hourly_prepaid].totals
     assert_equal BigDecimal("675.00"), t.line_total

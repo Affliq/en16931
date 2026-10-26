@@ -59,6 +59,14 @@ class PDFTest < Minitest::Test
     end
   end
 
+  def test_a_cancellation_prints_its_negative_amounts
+    pdf = EN16931::PDF.render(Fixtures.all[:cancellation_reverse_charge], locale: :de)
+    text = ::PDF::Reader.new(StringIO.new(pdf)).pages.first.text
+    assert_includes text, "-1 Stk."
+    assert_includes text, "-1.500,00 €"
+    refute_includes text, "GiroCode"
+  end
+
   def test_branded_render_carries_logo_texts_and_giro_code
     pdf = EN16931::PDF.render(@invoice, branding: Fixtures::BRANDING)
     reader = ::PDF::Reader.new(StringIO.new(pdf))

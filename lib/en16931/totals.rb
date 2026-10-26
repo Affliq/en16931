@@ -25,13 +25,16 @@ module EN16931
     private
 
     # One subtotal per distinct tax treatment; amount = taxable × rate, rounded.
+    # A negative base at 0 % gives BigDecimal -0, which the XML would print as
+    # "-0.00" against a total of "0.00" (BR-CO-14); zero is zero.
     def breakdown(invoice)
       bases = Hash.new(BigDecimal("0"))
       invoice.lines.each { |line| bases[invoice.tax_for(line)] += line.net }
       invoice.allowances.each { |a| bases[a.tax || invoice.tax] -= a.amount }
       invoice.charges.each { |c| bases[c.tax || invoice.tax] += c.amount }
       bases.map do |tax, taxable|
-        Subtotal.new(tax: tax, taxable: taxable, amount: (taxable * tax.rate / 100).round(2))
+        amount = (taxable * tax.rate / 100).round(2)
+        Subtotal.new(tax: tax, taxable: taxable, amount: amount.zero? ? BigDecimal("0") : amount)
       end
     end
   end

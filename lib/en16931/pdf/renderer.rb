@@ -244,12 +244,13 @@ module EN16931
 
       def number(value, decimals)
         text = format("%.#{decimals.max}f", value)
+        sign = text.delete_prefix!("-") ? "-" : ""
         int, frac = text.split(".")
         frac = frac&.sub(/0+\z/, "") if decimals.min < decimals.max
         frac = nil if frac && frac.empty?
         sep = FORMATS.fetch(locale)
         int = int.reverse.scan(/\d{1,3}/).join(sep[0]).reverse
-        [int, frac].compact.join(sep[1])
+        sign + [int, frac].compact.join(sep[1])
       end
 
       def date(d) = d.strftime(FORMATS.fetch(locale)[2])
