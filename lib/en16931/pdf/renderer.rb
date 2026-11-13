@@ -254,9 +254,10 @@ module EN16931
         { "EUR" => "€", "USD" => "$", "GBP" => "£", "CHF" => "CHF" }.fetch(invoice.currency, invoice.currency)
       end
 
+      # A negative number carries the true minus sign, as the totals write it.
       def number(value, decimals)
         text = format("%.#{decimals.max}f", value)
-        sign = text.delete_prefix!("-") ? "-" : ""
+        sign = text.delete_prefix!("-") ? "−" : ""
         int, frac = text.split(".")
         frac = frac&.sub(/0+\z/, "") if decimals.min < decimals.max
         frac = nil if frac && frac.empty?
