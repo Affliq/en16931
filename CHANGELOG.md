@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-13
+
 - The accent now colours the rule under the table header and the rule above the amount due, as documented; both were drawn black whatever the accent was.
 - `Branding` takes a `title_font:` for the document title alone (a display face without a bold cut is set as it is, at 20 pt), a `title_color:` apart from the accent, and `letterhead_name: false` to leave the seller's name out of the letterhead when the logo is a wordmark. Glyphs a title font lacks come from DejaVu Sans, like those of a branding font.
 - Negative quantities and amounts in the lines carry the true minus sign (−), like the allowances and the prepaid amount in the totals; they were set with a hyphen.
