@@ -52,4 +52,19 @@ class BrandingTest < Minitest::Test
     assert_equal 70, lines[5].length
     assert_equal 140, lines[10].length
   end
+
+  def test_title_font_colour_and_letterhead_name
+    plain = EN16931::Branding.new(accent: "FF5A1F")
+    assert_equal "FF5A1F", plain.title_colour
+    assert_predicate plain, :letterhead_name?
+
+    dressed = EN16931::Branding.new(logo: LOGO, accent: "FF5A1F", title_color: "15161a", title_font: "a.ttf", letterhead_name: false)
+    assert_equal ["15161A", "a.ttf"], [dressed.title_colour, dressed.title_font]
+    refute_predicate dressed, :letterhead_name?
+    # Without a logo there is nothing else to say who sends the letter.
+    assert_predicate EN16931::Branding.new(letterhead_name: false), :letterhead_name?
+
+    assert_raises(ArgumentError) { EN16931::Branding.new(title_color: "black") }
+    assert_raises(ArgumentError) { EN16931::Branding.new(title_font: { normal: "a.ttf" }) }
+  end
 end

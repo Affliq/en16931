@@ -85,6 +85,9 @@ branding = EN16931::Branding.new(
   logo_height: 40,                       # points; width follows, capped by logo_max_width (180)
   accent: "FF5A1F",                      # title and rules
   font: { normal: "Inter-Regular.ttf", bold: "Inter-Bold.ttf" },   # TrueType, embedded; DejaVu Sans otherwise
+  title_font: "Gloock-Regular.ttf",      # optional: a display face for the title alone, set as it is (no bold)
+  title_color: "15161A",                 # optional: the title's colour; the accent otherwise
+  letterhead_name: false,                # optional: leave the seller's name out beside a logo that is the name
   intro: "vielen Dank für den Auftrag. Für die vereinbarte Leistung berechne ich wie folgt:",
   closing: "Vielen Dank für die gute Zusammenarbeit.\n\nLena Beispiel",
   giro_code: true                        # default: EPC QR code for euro invoices with an IBAN and an amount due

@@ -9,6 +9,7 @@ module EN16931
     class Renderer
       FONT = "DejaVuSans"
       BRAND_FONT = "Brand"
+      TITLE_FONT = "Title"
       # The recipient block starts 45 mm below the page top (DIN 5008 window), unless the letterhead runs deeper.
       ADDRESS_TOP = 45 * 72 / 25.4
       GIRO_CODE_SIZE = 68
@@ -30,11 +31,10 @@ module EN16931
       def document
         @document ||= Prawn::Document.new(page_size: "A4", margin: [56, 50, 56, 50], compress: true, info: {}).tap do |pdf|
           pdf.font_families.update(FONT => { normal: EN16931.font_path("DejaVuSans.ttf"), bold: EN16931.font_path("DejaVuSans-Bold.ttf") })
-          if branding.font
-            pdf.font_families.update(BRAND_FONT => branding.font)
-            # Glyphs the brand font lacks (often € in a subset) come from DejaVu, never as .notdef.
-            pdf.fallback_fonts([FONT])
-          end
+          pdf.font_families.update(BRAND_FONT => branding.font) if branding.font
+          pdf.font_families.update(TITLE_FONT => { normal: branding.title_font }) if branding.title_font
+          # Glyphs a brand or title font lacks (often € in a subset, or another script) come from DejaVu, never as .notdef.
+          pdf.fallback_fonts([FONT]) if branding.font || branding.title_font
           pdf.font(branding.font ? BRAND_FONT : FONT, size: 9.5)
           draw(pdf)
         end
@@ -66,7 +66,7 @@ module EN16931
           pdf.image(StringIO.new(branding.logo), at: [x, top], width: width, height: height)
           name_align = :right if branding.logo_position == :left
         end
-        pdf.text invoice.seller.name, size: 14, style: :bold, align: name_align
+        pdf.text invoice.seller.name, size: 14, style: :bold, align: name_align if branding.letterhead_name?
         pdf.move_cursor_to [pdf.cursor, top - (size ? size[1] : 0)].min
         pdf.move_down 16
       end
@@ -90,7 +90,7 @@ module EN16931
       end
 
       def meta(pdf)
-        pdf.text Renderer.title(invoice, locale), size: 16, style: :bold, color: @accent
+        title(pdf)
         pdf.move_down 8
         rows = [[t(:number), invoice.number], [t(:date), date(invoice.issue_date)]]
         rows << [t(:due), date(invoice.due_date)] if invoice.due_date
@@ -106,6 +106,15 @@ module EN16931
           column(0).text_color = "666666"
         end
         pdf.move_down 18
+      end
+
+      # The document title. An own title font is set as it is: a display
+      # face rarely has a bold cut, and a faked one is not PDF/A's friend.
+      def title(pdf)
+        text = Renderer.title(invoice, locale)
+        return pdf.text(text, size: 16, style: :bold, color: branding.title_colour) unless branding.title_font
+
+        pdf.font(TITLE_FONT) { pdf.text text, size: 20, color: branding.title_colour }
       end
 
       def intro(pdf)
@@ -128,10 +137,12 @@ module EN16931
           [i + 1, [line.description, line.note, line.period && "#{date(line.period.begin)} – #{date(line.period.end)}"].compact.join("\n"),
            "#{number(line.quantity, 0..2)} #{unit(line.unit)}", money(line.unit_price), money(line.net)]
         end
+        # Prawn evaluates the block on the table: the renderer's instance variables are out of reach in there.
+        accent = @accent
         pdf.table([header] + rows, width: pdf.bounds.width, column_widths: { 0 => 32, 2 => 80, 3 => 80, 4 => 80 },
                                    cell_style: { borders: [:bottom], border_color: "DDDDDD", padding: [6, 4], size: 9.5 }) do
           row(0).font_style = :bold
-          row(0).border_color = @accent
+          row(0).border_color = accent
           columns(2..4).align = :right
           column(0).align = :right
         end
@@ -151,12 +162,13 @@ module EN16931
         rows << [t(:gross), money(totals.gross)]
         rows << [t(:prepaid), "−#{money(totals.prepaid)}"] if totals.prepaid.positive?
         rows << [t(:payable), money(totals.payable)]
+        accent = @accent
         pdf.indent(pdf.bounds.width - 260) do
           pdf.table(rows, column_widths: [160, 100], cell_style: { borders: [], padding: [3, 4], size: 9.5 }) do
             column(1).align = :right
             row(-1).font_style = :bold
             row(-1).borders = [:top]
-            row(-1).border_color = @accent
+            row(-1).border_color = accent
           end
         end
         pdf.move_down 14

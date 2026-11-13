@@ -164,6 +164,33 @@ class PDFTest < Minitest::Test
     refute_includes page_text(EN16931::Invoice.new(**Fixtures.base)), "Deutschland"
   end
 
+  def test_a_title_font_sets_the_title_alone_and_a_wordmark_replaces_the_name
+    branding = Fixtures::BRANDING.with(title_font: EN16931.font_path("DejaVuSans.ttf"), title_color: "15161A", letterhead_name: false)
+    document = EN16931::PDF::Renderer.new(@invoice, branding:).document
+    assert_includes document.font_families.keys, EN16931::PDF::Renderer::TITLE_FONT
+    assert_equal [EN16931::PDF::Renderer::FONT], document.fallback_fonts
+
+    text = page_text(@invoice, branding:)
+    assert_includes text, "Rechnung #{@invoice.number}"
+    # The name is gone from the letterhead, not from the return address and the footer.
+    assert_equal page_text(@invoice, branding: Fixtures::BRANDING).scan(@invoice.seller.name).size - 1, text.scan(@invoice.seller.name).size
+  end
+
+  # Collects the stroke colours a page sets.
+  class StrokeColours
+    attr_reader :colours
+
+    def initialize = @colours = []
+    def set_color_for_stroking_and_special(*rgb) = @colours << rgb.map { |part| (part * 255).round }
+  end
+
+  def test_the_accent_colours_the_rules_of_the_tables
+    pdf = EN16931::PDF.render(@invoice, branding: EN16931::Branding.new(accent: "C08A4B"))
+    receiver = StrokeColours.new
+    ::PDF::Reader.new(StringIO.new(pdf)).page(1).walk(receiver)
+    assert_operator receiver.colours.count([192, 138, 75]), :>=, 2, "header rule and total rule in the accent"
+  end
+
   private
 
   def page_text(invoice, **) = ::PDF::Reader.new(StringIO.new(EN16931::PDF.render(invoice, **))).pages.first.text

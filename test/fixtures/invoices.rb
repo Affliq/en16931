@@ -112,6 +112,8 @@ module Fixtures
     base = all.transform_values { |invoice| [invoice, {}] }
     base.merge(
       branded: [all[:standard_19], { branding: BRANDING }],
+      branded_wordmark_title_font: [all[:small_business], { branding: BRANDING.with(title_font: EN16931.font_path("DejaVuSans.ttf"), title_color: "15161A",
+                                                                                    letterhead_name: false, intro: nil, closing: nil) }],
       branded_right_en: [all[:reverse_charge_eu], { branding: BRANDING.with(logo_position: :right, intro: nil, closing: "Thank you for working with me."), locale: :en }]
     )
   end
